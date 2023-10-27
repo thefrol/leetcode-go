@@ -12,65 +12,39 @@ import (
 
 // Можно ещё экранировать значение узла от количества, чтобы там не перемудрить
 
-// Может быть можено как-то оптимизировать при помощи мапы поиск, может даже
-// там можно собрать что на что можно умножить, и что получится)
-// Вообще хорошая идея. Типа по каждому элементу,
-// умноженный элемент, который мы можем получить
+// Может быть можено как-то оптимизировать при помощи мапы поиск,
 
 func numFactoredBinaryTrees(arr []int) int {
-	count := 0
-
-	for _, v := range arr {
-		count += node(arr, v)
+	c := 0 // каждый элемент это один вариант
+	for _, item := range arr {
+		c += count(arr, item)
 	}
-	return count
+	return c
 }
 
-// node считает, сколько мы можем построить значений от этого листа
-func node(arr []int, curr int) int {
-	count := 1
+// count считает сколько мы можем построить деревьев от числа int,
+// с элементами из arr
+func count(arr []int, item int) int {
+	c := 1
+	for _, left := range arr {
+		for _, right := range arr {
+			if left*right == item {
+				{
+					if left != right {
+						c += count(arr, left) * count(arr, right) // Умножение!!! варианты слева умножаются на правые а не складываются
+					}
+					// можно ускорить, если обрабатывать когда left=right
+					if left == right {
+						vars := count(arr, left)
+						c += vars*(vars-1) + 1
+					}
 
-	for _, v := range next(arr, curr) {
-		count += node(arr, v)
-	}
-	return count
-}
+				}
 
-// next выдает список новых значений от этого листа,
-// которые получаются умножением этого листа на какой-то другой
-// выдается именно уже умноженный, второй элемент нам не оч интересен,
-func next(arr []int, item int) []int {
-	var list []int
-	for _, v := range arr {
-		if has(arr, v*item) {
-			// получили новый элемент, который тоже в списке
-			list = append(list, v*item)
-		}
-	}
-	return list
-}
-
-// проверяет, что item в массиве
-func has(arr []int, item int) bool {
-	for _, v := range arr {
-		if item == v {
-			return true
-		}
-	}
-	return false
-}
-
-// prev находит два множителя при движенит в обратную сторону. Найти для этого элемента из чело можно собрать
-func prev(arr []int, curr int) [][]int {
-	var items [][]int
-	for _, a := range arr {
-		for _, b := range arr {
-			if has(arr, a*b) {
-				items = append(items, []int{a, b})
 			}
 		}
 	}
-	return items
+	return c
 }
 
 func TestTree(t *testing.T) {
@@ -79,32 +53,16 @@ func TestTree(t *testing.T) {
 		trees int
 	}{
 		{arr: []int{2, 4}, trees: 3},
+		{arr: []int{2, 4, 8}, trees: 8},
 		{arr: []int{2, 4, 5, 10}, trees: 7},
 		{arr: []int{18, 3, 6, 2}, trees: 12},
+		{trees: 777, arr: []int{45, 42, 2, 18, 23, 1170, 12, 41, 40, 9, 47, 24, 33, 28, 10, 32, 29, 17, 46, 11, 759, 37, 6, 26, 21, 49, 31, 14, 19, 8, 13, 7, 27, 22, 3, 36, 34, 38, 39, 30, 43, 15, 4, 16, 35, 25, 20, 44, 5, 48}},
 	}
 
 	for _, tc := range tests {
 		name := fmt.Sprint(tc.arr)
 		t.Run(name, func(t *testing.T) {
 			assert.Equal(t, tc.trees, numFactoredBinaryTrees(tc.arr))
-		})
-	}
-}
-
-func TestNext(t *testing.T) {
-	tests := []struct {
-		arr      []int
-		item     int
-		expected []int
-	}{
-		{arr: []int{18, 3, 6, 2}, item: 3, expected: []int{6, 18}},
-	}
-
-	for _, tc := range tests {
-		name := fmt.Sprint(tc.arr, tc.item)
-		t.Run(name, func(t *testing.T) {
-			real := next(tc.arr, tc.item)
-			assert.ElementsMatchf(t, tc.expected, real, "Was %v but should be %v", real, tc.expected)
 		})
 	}
 }
