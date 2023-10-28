@@ -21,6 +21,7 @@ import (
 // возможно если мы нашли какой-то большой палиндром, то другие более короткие версии заканчиваем искать.
 // думаю такой случай может быть, когда мы ищем левый вариант строки, в то время как нашли что-то справа уже
 var cache [][]bool
+var longestS []byte
 
 func longestPalindrome(s string) string {
 	cache = make([][]bool, len(s)) // возможно сделать и сплошной массив, главное потом с индексами не напутать)
@@ -31,6 +32,10 @@ func longestPalindrome(s string) string {
 }
 
 func longest(source []byte, left, right int) []byte {
+	print("longest", left, right)
+	if len(source) < right-left {
+		return longestS
+	}
 	if left == right {
 		return source[left : right+1] // +1 потому что правая граница всегда не включается, и мы хотим ее включить
 	}
@@ -47,10 +52,16 @@ func longest(source []byte, left, right int) []byte {
 }
 
 func isPalindrome(source []byte, left, right int) bool {
+	if cache[left][right] == true {
+		return true
+	}
 	if len(source) == 0 {
 		return false
 	}
 	if len(source) == 1 {
+		if len(longestS) < right-left {
+			longestS = source[left : right+1]
+		}
 		return true
 	}
 	// if val, ok := cache[source]; ok {
@@ -70,6 +81,10 @@ func isPalindrome(source []byte, left, right int) bool {
 	return true
 }
 
+func TestTooLong(t *testing.T) {
+	longestPalindrome("babaddtattarrattatddetartrateedredividerb")
+}
+
 func Test(t *testing.T) {
 	testCases := []struct {
 		input      string
@@ -79,10 +94,12 @@ func Test(t *testing.T) {
 		{input: "cbbd", palindrome: "bb"},
 		{input: "sisiooppoosos", palindrome: "ooppoo"},
 		{input: "sisiooppoososaaddaaccaaddaa", palindrome: "aaddaaccaaddaa"},
+		//{input: "babaddtattarrattatddetartrateedredividerb", palindrome: "123"},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.input, func(t *testing.T) {
 			assert.Equal(t, tC.palindrome, longestPalindrome(tC.input))
 		})
 	}
+
 }
