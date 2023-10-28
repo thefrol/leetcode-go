@@ -29,6 +29,8 @@ func Test(t *testing.T) {
 		// неправильное условие стояло
 		//
 		// господи, спасибо тестам
+
+		{pattern: "a.a", s: "aaa", res: true},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.pattern+" "+tC.s, func(t *testing.T) {
