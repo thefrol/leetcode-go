@@ -133,10 +133,23 @@ func NewChecker(s string) Checker {
 			},
 		}
 	} else {
+		stop := -1
+		for i := 0; i < len(s); i++ {
+			if len(s) > i+1 && s[i+1] == '*' {
+				stop = i
+				break
+			}
+			if s[i] == '.' {
+				break
+			}
+		}
+		if stop == -1 {
+			return Substring{Data: Data{Pred: s, Next: EOF{}}}
+		}
 		return Substring{
 			Data: Data{
-				Pred: s[0:1],
-				Next: NewChecker(s[1:]),
+				Pred: s[0:stop],
+				Next: NewChecker(s[stop:]),
 			},
 		}
 	}
