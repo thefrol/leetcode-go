@@ -140,12 +140,14 @@ func NewChecker(s string) Checker {
 				break
 			}
 			if s[i] == '.' {
+				stop = i
 				break
 			}
 		}
 		if stop == -1 {
 			return Substring{Data: Data{Pred: s, Next: EOF{}}}
 		}
+
 		return Substring{
 			Data: Data{
 				Pred: s[0:stop],
