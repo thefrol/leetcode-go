@@ -20,13 +20,19 @@ import (
 
 // возможно если мы нашли какой-то большой палиндром, то другие более короткие версии заканчиваем искать.
 // думаю такой случай может быть, когда мы ищем левый вариант строки, в то время как нашли что-то справа уже
+
+// V2 стоит поменять принцип работы КЕША. Он должен как можно быстрее говорить, что тут палиндрома нет
+// Значит если кеш==тру, тут никаких палиндромов
 var cache [][]bool
+var nopal [][]bool
 var longestS []byte
 
 func longestPalindrome(s string) string {
-	cache = make([][]bool, len(s)) // возможно сделать и сплошной массив, главное потом с индексами не напутать)
+	cache = make([][]bool, len(s))
+	nopal = make([][]bool, len(s)) // возможно сделать и сплошной массив, главное потом с индексами не напутать)
 	for i := 0; i < len(s); i++ {
 		cache[i] = make([]bool, len(s))
+		nopal[i] = make([]bool, len(s))
 	}
 	return string(longest([]byte(s), 0, len(s)-1))
 }
@@ -52,6 +58,9 @@ func longest(source []byte, left, right int) []byte {
 }
 
 func isPalindrome(source []byte, left, right int) bool {
+	if nopal[left][right] == true {
+		return false
+	}
 	if cache[left][right] == true {
 		return true
 	}
@@ -71,7 +80,16 @@ func isPalindrome(source []byte, left, right int) bool {
 		if cache[l][r] == true {
 			break // чтобы записать в кеш
 		}
+		if nopal[l][r] == true {
+			for l, r := l, r; l == left && r == right; l, r = l-1, r+1 {
+				nopal[l][r] = true // возможно если у нас есть более глобальный палиндром, то можно как бы с более мелкими не заморачиваться, которые внутри большого
+			}
+			return false // чтобы записать в кеш
+		}
 		if source[l] != source[r] {
+			for l, r := l, r; l == left && r == right; l, r = l-1, r+1 {
+				nopal[l][r] = true // возможно если у нас есть более глобальный палиндром, то можно как бы с более мелкими не заморачиваться, которые внутри большого
+			}
 			return false
 		}
 	}
