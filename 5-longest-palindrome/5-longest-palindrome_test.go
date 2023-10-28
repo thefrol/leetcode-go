@@ -17,44 +17,55 @@ import (
 // # Потому что я много раз запускаю поиск по одним и тем же строкам
 //
 // Плюс постарайся уложиться в стек
-var longestS string
-var cache map[string]bool
+
+// возможно если мы нашли какой-то большой палиндром, то другие более короткие версии заканчиваем искать.
+// думаю такой случай может быть, когда мы ищем левый вариант строки, в то время как нашли что-то справа уже
+var cache [][]bool
 
 func longestPalindrome(s string) string {
-	longestS = ""
-	cache = map[string]bool{}
-	longest("", "", s)
-	return longestS
+	cache = make([][]bool, len(s)) // возможно сделать и сплошной массив, главное потом с индексами не напутать)
+	for i := 0; i < len(s); i++ {
+		cache[i] = make([]bool, len(s))
+	}
+	return string(longest([]byte(s), 0, len(s)-1))
 }
 
-func longest(curr, left, right string) {
-	if isPalindrome(curr) && len(curr) > len(longestS) {
-		longestS = curr
+func longest(source []byte, left, right int) []byte {
+	if left == right {
+		return source[left : right+1] // +1 потому что правая граница всегда не включается, и мы хотим ее включить
 	}
-	if len(right) > 0 {
-		longest(curr+right[0:0], left, right[1:])
-	} else if len(left) > 0 {
-		longest(left[len(left)-1:len(left)-1]+curr, left[:len(left)-1], right)
+	if isPalindrome(source, left, right) {
+		return source[left : right+1]
+	}
+	leftS := longest(source, left+1, right)
+	rightS := longest(source, left, right-1)
+	if len(leftS) > len(rightS) {
+		return leftS
 	} else {
-		return
+		return rightS
 	}
 }
 
-func isPalindrome(s string) bool {
-	if len(s) == 0 {
+func isPalindrome(source []byte, left, right int) bool {
+	if len(source) == 0 {
 		return false
 	}
-	if len(s) == 1 {
+	if len(source) == 1 {
 		return true
 	}
-	if val, ok := cache[s]; ok {
-		return val
-	}
-	bb := []byte(s)
-	for i := 0; i < len(bb)/2; i++ {
-		if bb[i] != bb[len(bb)-i-1] {
+	// if val, ok := cache[source]; ok {
+	// 	return val
+	// }
+	for l, r := left, right; r-l >= 1; l, r = l+1, r-1 {
+		if cache[l][r] == true {
+			break // чтобы записать в кеш
+		}
+		if source[l] != source[r] {
 			return false
 		}
+	}
+	for l, r := left, right; r-l > 1; l, r = l+1, r-1 {
+		cache[l][r] = true // возможно если у нас есть более глобальный палиндром, то можно как бы с более мелкими не заморачиваться, которые внутри большого
 	}
 	return true
 }
@@ -64,8 +75,10 @@ func Test(t *testing.T) {
 		input      string
 		palindrome string
 	}{
-		{input: "badad", palindrome: "dad"},
+		{input: "badad", palindrome: "ada"},
 		{input: "cbbd", palindrome: "bb"},
+		{input: "sisiooppoosos", palindrome: "ooppoo"},
+		{input: "sisiooppoososaaddaaccaaddaa", palindrome: "aaddaaccaaddaa"},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.input, func(t *testing.T) {
