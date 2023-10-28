@@ -12,31 +12,29 @@ var cache map[string]bool
 func longestPalindrome(s string) string {
 	longestS = ""
 	cache = map[string]bool{}
-	return longest(s)
+	longest("", "", s)
+	return longestS
 }
 
-func longest(s string) string {
-	if len(s) < len(longestS) {
-		return ""
+func longest(curr, left, right string) {
+	if isPalindrome(curr) && len(curr) > len(longestS) {
+		longestS = curr
 	}
-	if isPalindrome(s) {
-		if len(s) > len(longestS) {
-			longestS = s
-		}
-		longestS = s
-		return s
+	if len(right) > 0 {
+		longest(curr+right[0:0], left, right[1:])
+	} else if len(left) > 0 {
+		longest(left[len(left)-1:len(left)-1]+curr, left[:len(left)-1], right)
+	} else {
+		return
 	}
-	res1 := longest(s[:len(s)-1])
-	res2 := longest(s[1:])
-	if len(res1) > len(res2) {
-		return res1
-	}
-	return res2
 }
 
 func isPalindrome(s string) bool {
 	if len(s) == 0 {
 		return false
+	}
+	if len(s) == 1 {
+		return true
 	}
 	if val, ok := cache[s]; ok {
 		return val
