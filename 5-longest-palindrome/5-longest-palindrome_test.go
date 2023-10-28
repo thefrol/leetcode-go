@@ -32,7 +32,7 @@ func longestPalindrome(s string) string {
 }
 
 func longest(source []byte, left, right int) []byte {
-	print("longest", left, right)
+	//print("longest", left, right)
 	if len(source) < right-left {
 		return longestS
 	}
