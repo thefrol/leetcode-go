@@ -1,7 +1,6 @@
 package main
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,31 +10,38 @@ import (
 //
 // https://github.com/thefrol/leetcode-go
 
-func mergeAlternately(word1 string, word2 string) string {
-	sum := strings.Builder{}
+// V1 вместо стрингбилдера использовать аппенд
+// V2 создать слайс байтов нужной капасити
+// V3 вместо string использовать []byte, что по сути одно и то же
+// но меньше кринжовых преобразований
 
-	var lesser, other *string
+// три вот этих пункта исправил, и вместо скорости в 33%, обошел получил 75% сдавших
+// работу этим идиоматичным кодом
+
+func mergeAlternately(word1 string, word2 string) string {
+	sum := make([]byte, 0, len(word1)+len(word2))
+
+	var lesser, other []byte
 	if len(word1) > len(word2) {
-		lesser = &word2
-		other = &word1
+		lesser = []byte(word2)
+		other = []byte(word1)
 	} else {
-		lesser = &word1
-		other = &word2
+		lesser = []byte(word1)
+		other = []byte(word2)
 	}
 
 	// перемешиваем
 	var i int
-	for i = range *lesser {
-		sum.WriteByte(word1[i])
-		sum.WriteByte(word2[i])
+	for i = range lesser {
+		sum = append(sum, word1[i], word2[i])
 	}
 
 	// добавляем остатки
-	if i != len(*other)-1 {
-		sum.WriteString((*other)[i+1 : len(*other)])
+	if i != len(other)-1 {
+		sum = append(sum, other[i+1:]...)
 	}
 
-	return sum.String()
+	return string(sum)
 }
 
 func Test(t *testing.T) {
