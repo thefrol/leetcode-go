@@ -10,6 +10,8 @@ import (
 //
 // https://github.com/thefrol/leetcode-go
 
+// https://leetcode.com/problems/merge-strings-alternately/solutions/4224142/go-fast-beautiful-ideomatic/
+
 // V1 вместо стрингбилдера использовать аппенд
 // V2 создать слайс байтов нужной капасити
 // V3 вместо string использовать []byte, что по сути одно и то же
@@ -18,16 +20,14 @@ import (
 // три вот этих пункта исправил, и вместо скорости в 33%, обошел получил 75% сдавших
 // работу этим идиоматичным кодом
 
+// V4 Установить меньшую и болшую строку рандомно и проверить, если все так)
+
 func mergeAlternately(word1 string, word2 string) string {
 	sum := make([]byte, 0, len(word1)+len(word2))
 
-	var lesser, other []byte
-	if len(word1) > len(word2) {
-		lesser = []byte(word2)
-		other = []byte(word1)
-	} else {
-		lesser = []byte(word1)
-		other = []byte(word2)
+	lesser, larger := []byte(word1), []byte(word2)
+	if len(lesser) > len(larger) {
+		lesser, larger = larger, lesser
 	}
 
 	// перемешиваем
@@ -37,8 +37,8 @@ func mergeAlternately(word1 string, word2 string) string {
 	}
 
 	// добавляем остатки
-	if i != len(other)-1 {
-		sum = append(sum, other[i+1:]...)
+	if i != len(larger)-1 {
+		sum = append(sum, larger[i+1:]...)
 	}
 
 	return string(sum)
