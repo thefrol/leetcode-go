@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/bits"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,6 +17,12 @@ type ListNode struct {
 }
 
 // https://github.com/thefrol/leetcode-go
+//
+// Просто прибавляем все в третий лист, проблема с тем,
+// чтобы не оставалось в конце нуля и в начале
+
+// V2 изменять лист V1 и не плодить ещё один лист
+// плюсы очень просто понять когда все закончится
 
 func Append(n *ListNode, val int) *ListNode {
 	new := ListNode{
@@ -35,17 +40,10 @@ func Append(n *ListNode, val int) *ListNode {
 func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
 	var r, root *ListNode
 
-	var v, leftover uint
-	for {
-		// условие выхода
-		if l1 == nil && l2 == nil {
-			if leftover != 0 {
-				Append(r, int(leftover))
-			}
-			break
-		}
+	var sum, leftover int
+	for l1 != nil || l2 != nil || leftover > 0 {
 
-		sum := leftover
+		sum = leftover
 
 		r = Append(r, 0)
 		// на случай первого прохода
@@ -53,17 +51,16 @@ func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
 			root = r
 		}
 		if l2 != nil {
-			sum += uint(l2.Val)
+			sum += l2.Val
 			l2 = l2.Next
 		}
 		if l1 != nil {
-			sum += uint(l1.Val)
+			sum += l1.Val
 			l1 = l1.Next
 		}
 
 		// тут очень забавный момент, что наше значение это по сути остаток от деления, можно легко перепутать
-		leftover, v = bits.Div(0, sum, 10) // может тут можно ускорить через 32 разрядность, а может как-то можно использовать и два разряда верхний и нижний
-		r.Val = int(v)
+		leftover, r.Val = sum/10, sum%10 // может тут можно ускорить через 32 разрядность, а может как-то можно использовать и два разряда верхний и нижний
 
 	}
 	return root
