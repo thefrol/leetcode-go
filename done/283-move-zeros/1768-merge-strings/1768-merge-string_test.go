@@ -22,26 +22,52 @@ import (
 
 // V4 Установить меньшую и болшую строку рандомно и проверить, если все так)
 
+// func mergeAlternately(word1 string, word2 string) string {
+// 	sum := make([]byte, 0, len(word1)+len(word2))
+
+// 	lesser, larger := []byte(word1), []byte(word2)
+// 	if len(lesser) > len(larger) {
+// 		lesser, larger = larger, lesser
+// 	}
+
+// 	// перемешиваем
+// 	var i int
+// 	for i = range lesser {
+// 		sum = append(sum, word1[i], word2[i])
+// 	}
+
+// 	// добавляем остатки
+// 	if i != len(larger)-1 {
+// 		sum = append(sum, larger[i+1:]...)
+// 	}
+
+// 	return string(sum)
+// }
+
+// V5 использовать генераторы на замыканиях
+
+func generator(word string) func() []byte {
+	i := 0
+	returner := make([]byte, 1) // so we dont realloc anymore
+	return func() (res []byte) {
+		if i < len(word) {
+			returner[0] = word[i]
+			i++
+			return returner
+		}
+		return
+	}
+}
+
 func mergeAlternately(word1 string, word2 string) string {
-	sum := make([]byte, 0, len(word1)+len(word2))
+	res := make([]byte, 0, len(word1)+len(word2))
 
-	lesser, larger := []byte(word1), []byte(word2)
-	if len(lesser) > len(larger) {
-		lesser, larger = larger, lesser
+	g1, g2 := generator(word1), generator(word2)
+	for len(res) < cap(res) {
+		res = append(res, append(g1(), g2()...)...)
 	}
 
-	// перемешиваем
-	var i int
-	for i = range lesser {
-		sum = append(sum, word1[i], word2[i])
-	}
-
-	// добавляем остатки
-	if i != len(larger)-1 {
-		sum = append(sum, larger[i+1:]...)
-	}
-
-	return string(sum)
+	return string(res)
 }
 
 func Test(t *testing.T) {
