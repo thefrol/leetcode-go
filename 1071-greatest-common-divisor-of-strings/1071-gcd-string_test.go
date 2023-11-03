@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,36 +19,43 @@ import (
 // то получим A, он не является делителем. Значит алгоритм попробует делить ещё сильнее
 // и в итоге не найдет вообще общего делителя
 
-// идеи для V2 в целом мы можем посчитать наибольший общий делить для длинн строк,
+// V2 в целом мы можем посчитать наибольший общий делить для длинн строк,
 // и просто сравнить потом буквы. ПОнятно, что ABCAB и AB не могут иметь общего делителя
-// строкового, потому что у них нет общего делителя вообще
+// строкового, потому что у них нет общего делителя вообще. ТУт нам поможет алгоритм евклида
+// для начала выходить из алгоритма если общий делитель не существует
 
-// идея для V3 когда проверяем буквы, можно проверять сразу две строки, потому
+// ИДЕЯ для V3, начинать не с полной длинны, а с НОД по алгоритму ЕВКЛИДА
+
+// идея для V; когда проверяем буквы, можно проверять сразу две строки, потому
 // что мне в алгоритме надо именно это проверять
 
 func gcdOfStrings(str1 string, str2 string) string {
-	min, other := str1, str2
-	if len(min) > len(other) {
-		min, other = other, min
+	lesser, larger := str1, str2
+	if len(lesser) > len(larger) {
+		lesser, larger = larger, lesser
 	}
 
 	var cd string
-	for i := len(min); i >= 0; i-- {
-		cd = min[0:i]
-		if isCD(min, cd) && isCD(other, cd) {
-			return min[0:i]
+	for i := GCD(len(larger), len(lesser)); i >= 0; i-- {
+		cd = lesser[0:i]
+		if isCD(lesser, cd) && isCD(larger, cd) {
+			return lesser[0:i]
 		}
 	}
 	return ""
 }
 
-// а проверим сразу две строки
-// func isCDfast(less, large, cd string) bool {
-// сложна
-// }
+// GCD считает НОД для двух чисел, обязательно надо передать большее и меньшее
+func GCD(larger, lesser int) int {
+	if larger%lesser == 0 {
+		return lesser
+	}
+	return GCD(lesser, larger%lesser)
+}
 
 // isCD проверяет является ли общим делителем cd делителем строки str
 func isCD(str, cd string) bool {
+	// тут тоже можно сначала проверять что строки делятся друг на друга
 	if len(cd) == 0 {
 		return true
 	}
@@ -76,6 +84,11 @@ func isCD(str, cd string) bool {
 	// типа сообщать что общий длитель в два раза короче
 	// на какой цифре сбился поиск, пока не понимаю как это использовать тока
 }
+
+// а проверим сразу две строки
+// func isCDfast(less, large, cd string) bool {
+// сложна
+// }
 
 func Test_gcdOfStrings(t *testing.T) {
 
@@ -106,6 +119,23 @@ func Test_isCD(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.str+"/"+tt.cd, func(t *testing.T) {
 			assert.Equal(t, tt.want, isCD(tt.str, tt.cd))
+		})
+	}
+}
+
+func TestGCD(t *testing.T) {
+	tests := []struct {
+		larger, lesser int
+		want           int
+	}{
+		{5, 3, 1},
+		{10, 5, 5},
+		{15, 10, 5},
+	}
+	for _, tt := range tests {
+		name := fmt.Sprintf("NOD(%d,%d)", tt.larger, tt.lesser)
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tt.want, GCD(tt.larger, tt.lesser))
 		})
 	}
 }
