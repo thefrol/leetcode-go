@@ -82,3 +82,71 @@
 ## Литкод дал узнать лучше библиотеку стандартную
 
 например `strings.Fields()` поделит строку и уберет лишние пробелы, а ещё есть `bits.TrailingZeros()` `bits.Div` `math.Frexp()`
+
+## Код работает медленно, если пишем туда же откуда читаем?
+
+238 задача
+
+мой код, без лишних переменных без лишних массивов. считает 17 мс
+
+```go
+func productExceptSelf(nums []int) []int {
+    res := make([]int, len(nums))
+
+    var i int
+    res[0] = 1 // кроме первого(нулевого)
+    for i = 1; i < len(nums); i++ {
+        res[i] = res[i-1] * nums[i-1]
+    }
+
+    buf := 1
+    for i = len(nums) - 2; i >= 0; i-- {
+        buf *= nums[i+1]
+        res[i] *= buf
+        // на последней итерации будет записано, но не используется уже
+    }
+
+    return res
+}
+```
+
+а вот код каких-то челиков с двумя массивами лишними работает 7мс, то **в 2,5 раза быстрее**
+
+```go
+func productExceptSelf(nums []int) []int {
+    prod := make([]int, len(nums))
+    revprod := make([]int, len(nums))
+
+    cmult1 := 1
+    cmult2 := 1
+
+    for i := 0; i < len(nums); i++ {
+        cmult1 = cmult1 * nums[i]
+        prod[i] = cmult1
+
+        revindex := len(nums)-1-i
+        cmult2 = cmult2 * nums[revindex]
+        revprod[revindex] = cmult2
+    }
+
+    ans := make([]int, len(nums))
+
+    for i := 0; i < len(nums); i++ {
+        left := 1
+        right := 1
+
+        if (i > 0) {
+            left = prod[i-1]
+        }
+        
+        if (i < len(nums) -1) {
+            right = revprod[i+1]
+        }
+        ans[i] = left * right
+    }
+
+    return ans
+}
+```
+
+Связано ли это с тем, что мы читаем оттуда же куда пишем и го не может оптимизировать как-то код?
