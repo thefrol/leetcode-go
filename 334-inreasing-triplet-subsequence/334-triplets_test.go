@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,98 +29,48 @@ import (
 // а значит максимум считаем только во втором случае
 
 func increasingTriplet(nums []int) bool {
-	return hasSequence(nil, 3)
-}
 
-// hasSequence проверяет, есть ли в nums 3 последовательно увеличивающихся числа
-// условие len(nums)>count
-func hasSequence(nums Nodes, count int) bool {
-	switch {
-	case count <= 1:
+	// уберем дубликаты подряд
+	nums = slices.Compact(nums)
+
+	if hasSequence(nums, 3) {
 		return true
-		// ускорить, убрав повторяющиеся числа
-	case count == 2:
-		// IndexMax(nums)-IndexMin(nums) > 1
-
-	default:
-		//imax := IndexMax(nums)
-		//inum := IndexMin(nums)
-
-		// seq := nums[IndexMin(nums)+1:] // min not included
-		// return hasSequence(seq, count-1)
 	}
-	return true
-}
 
-// IndexMax возвращает индекс максимального значения,
-// если максимальных значений несколько вернет самое большое
-func IndexMax(nums []int) (index int) {
-	for i := 0; i < len(nums); i++ {
-		if nums[i] < nums[index] {
-			index = i
-		}
-	}
-	return
-}
-
-type index int
-
-// seq позвращает последовательности индексов по возрастанию значений
-// если её переписать на другую сортировку ну нубдет быстрее
-// я думаю для разных лоинн интов можно разные функции использовать
-
-type Node struct {
-	index int
-	val   int
-}
-
-type Nodes []Node
-
-func (ns Nodes) Cut(start int, end int) Nodes {
-	//nodes := make(Nodes, 0, end-start)
-	for n := range []Node(ns) {
-		fmt.Printf("n: %v\n", n)
-	}
-	return nil
-}
-
-// Len implements sort.Interface.
-func (n Nodes) Len() int {
-	return len(n)
-}
-
-// Less implements sort.Interface.
-func (n Nodes) Less(i int, j int) bool {
-	return n[i].val < n[j].val
-}
-
-// Swap implements sort.Interface.
-func (n Nodes) Swap(i int, j int) {
-	n[i], n[j] = n[j], n[i]
-}
-
-func NewNodes(nums []int) Nodes {
-	ns := make(Nodes, len(nums))
+	min := nums[0]
 	for i, v := range nums {
-		ns[i] = Node{
-			index: i,
-			val:   v,
+		if v < min && hasSequence(nums[i:], 3) {
+			return true
 		}
 	}
-	return ns
+	return false // или так hasSequence(nums, 3)
 }
 
-var _ sort.Interface = (*Nodes)(nil)
+// nums[0] is minimal
+func hasSequence(nums []int, count int) bool {
+	switch count {
+	case 0:
+		return true
+	case 1:
+		return len(nums) >= 1
+	default:
+		if len(nums) < count {
+			return false
+		}
+		indexMinFailed := -1
+		for i, v := range nums {
+			// проверяем i, потом ищем число мешьше i и проверяем опять
+			if v > nums[0] && (indexMinFailed == -1 || v < nums[indexMinFailed]) {
+				if success := hasSequence(nums[i:], count-1); success {
+					return true
+				} else {
+					indexMinFailed = i
+				}
+			}
 
-// IndexMin возващает индекс минимального числа,
-// если минимальных чисел несколько возвращает самое маленькое
-func IndexMin(nums []int) (index int) {
-	for i := 0; i < len(nums); i++ {
-		if nums[i] > nums[index] {
-			index = i
 		}
 	}
-	return
+	return false
 }
 
 func Test(t *testing.T) {
@@ -136,7 +86,9 @@ func Test(t *testing.T) {
 
 		// // // i не обязательно всегда минимум глобальный.
 		// {[]int{6, 7, 1, 9}, true}, // даа жесть
-		{[]int{1, 5, 0, 4, 1, 3}, true},
+		// {[]int{1, 5, 0, 4, 1, 3}, true},
+		// {[]int{6, 7, 1, 2}, false},
+		{[]int{1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, 7}, true},
 
 		// но для быстрой работы можно поискать минимум
 		// может как-то отсортировать числа даже
