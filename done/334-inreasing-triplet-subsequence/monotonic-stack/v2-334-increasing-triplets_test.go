@@ -1,6 +1,6 @@
 package main
 
-// ПОПЫТКА МОНОТОННОГО СТЕКА НЕ УДАЛАСЬ
+// ОПЯТЬ ПРОВАЛ
 
 import (
 	"fmt"
@@ -18,26 +18,31 @@ import (
 
 // а не воспользоваться ли нам монотонным стеком
 // для каждого числа, если оно больше, чем
-// чем верхушка - добавляем новое. Если меньше,
-// то выкидываем все значения и ищем то,
-// где новое значение будет больше того, что в стеке
+// чем верхушка - добавляем новое. Но не выдергиваем элементы
 
-// то есть если мы нашли минимум, но оно полностью
-// обновит стек. Если максимум, то достроит
-// надо просто глубину проверять
+// параллельно, если новое число меньше минимума -
+// добавляем ещё один стек и пишем уже в несколько стеков.
+// и ждем что какой-то сработает
 
 func increasingTriplet(nums []int) bool {
-	s := NewMonotonicRising(2) // это монотонный возрастающий стек
+	stacks := []MonotonicRising{NewMonotonicRising(2)} // это монотонный возрастающий стек
 	//когда положим три элемента будет переполнение
 
-	var ok bool
+	min := nums[0]
 	for _, v := range nums {
-		ok = s.Push(v) // overflow:=!ok
-		if !ok {
-			// если стек переполнился
-			// значит нашли третий элемент
-			return true
+		if v < min {
+			stacks = append(stacks, NewMonotonicRising(2))
+			min = v
 		}
+		for i := range stacks {
+			ok := stacks[i].Push(v) // overflow:=!ok
+			if !ok {
+				// если стек переполнился
+				// значит нашли третий элемент
+				return true
+			}
+		}
+
 	}
 	return false
 }
@@ -55,15 +60,10 @@ func NewMonotonicRising(n int) MonotonicRising {
 }
 
 func (s *MonotonicRising) Push(x int) bool {
-	for {
-		if v, ok := s.s.Top(); ok && v > x {
-			s.s.Pop()
-		} else {
-			break
-		}
-
+	if v, ok := s.s.Top(); !ok || x > v {
+		return s.s.Push(x)
 	}
-	return s.s.Push(x)
+	return true
 }
 
 func (s MonotonicRising) Size() int {
@@ -80,7 +80,15 @@ func TestMonotonic(t *testing.T) {
 	s.Push(2)
 	s.Push(1)
 
+	top, _ := s.s.Top()
 	assert.Equal(t, 1, s.Size())
+	assert.Equal(t, 3, top)
+
+	s.Push(4)
+
+	top, _ = s.s.Top()
+	assert.Equal(t, 2, s.Size())
+	assert.Equal(t, 4, top)
 
 }
 
